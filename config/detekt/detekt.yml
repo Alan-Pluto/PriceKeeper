@@ -1,0 +1,24 @@
+# detekt configuration for PriceKeeper
+# See: https://detekt.dev/docs/rules
+
+build:
+  maxIssues: 0
+
+style:
+  MaxLineLength:
+    maxLineLength: 120
+    excludeCommentStatements: true
+  WildcardImport:
+    excludeImports:
+      - 'com.pricekeeper.app.*'
+  MagicNumber:
+    ignorePropertyDeclaration: true
+    ignoreCompanionObjectPropertyDeclaration: true
+
+naming:
+  FunctionNaming:
+    ignoreAnnotated: ['Composable']
+
+complexity:
+  TooManyFunctions:
+    ignoreAnnotated: ['Composable']
