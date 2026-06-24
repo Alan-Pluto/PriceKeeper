@@ -2,6 +2,9 @@ package com.pricekeeper.app.feature.manual
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.pricekeeper.app.core.location.StoreLocationInfo
+import com.pricekeeper.app.core.location.StoreLocationParseResult
+import com.pricekeeper.app.core.location.parseMapShareLocation
 import com.pricekeeper.app.domain.repository.CategoryRepository
 import com.pricekeeper.app.domain.repository.GoodsRepository
 import com.pricekeeper.app.domain.repository.StoreRepository
@@ -166,27 +169,39 @@ class ManualEntryViewModel @Inject constructor(
         }
     }
 
-    fun saveAndContinue() {
-        performSave(resetForm = true)
+    fun saveAndContinue(
+        resolveLocation: suspend (Double, Double) -> StoreLocationInfo = { latitude, longitude ->
+            fallbackStoreLocationInfo(latitude, longitude)
+        }
+    ) {
+        performSave(resetForm = true, resolveLocation = resolveLocation)
     }
 
-    fun saveOnly() {
-        performSave(resetForm = false, backAfterSave = true)
+    fun saveOnly(
+        resolveLocation: suspend (Double, Double) -> StoreLocationInfo = { latitude, longitude ->
+            fallbackStoreLocationInfo(latitude, longitude)
+        }
+    ) {
+        performSave(resetForm = false, backAfterSave = true, resolveLocation = resolveLocation)
     }
 
     fun onSaveNavigationConsumed() {
         _uiState.update { it.copy(saveSuccess = false, pendingBackAfterSave = false) }
     }
 
-    private fun performSave(resetForm: Boolean, backAfterSave: Boolean = false) {
-        val errors = validate()
-        if (errors.isNotEmpty()) {
-            _uiState.update { it.copy(validationErrors = errors) }
-            return
-        }
-
+    private fun performSave(
+        resetForm: Boolean,
+        backAfterSave: Boolean = false,
+        resolveLocation: suspend (Double, Double) -> StoreLocationInfo
+    ) {
         viewModelScope.launch {
             _uiState.update { it.copy(isSaving = true, validationErrors = emptyMap()) }
+            prepareStoreLocationForSave(resolveLocation)
+            val errors = validate()
+            if (errors.isNotEmpty()) {
+                _uiState.update { it.copy(isSaving = false, validationErrors = errors) }
+                return@launch
+            }
             val state = _uiState.value
             categoryRepository.addCategory(state.category.ifBlank { "未分类" })
             val result = addManualPriceRecordUseCase(
@@ -225,6 +240,40 @@ class ManualEntryViewModel @Inject constructor(
         }
     }
 
+    private suspend fun prepareStoreLocationForSave(
+        resolveLocation: suspend (Double, Double) -> StoreLocationInfo
+    ) {
+        val state = _uiState.value
+        if (!state.showNewStoreFields) return
+        if (state.storeLocationInput.isBlank()) return
+        if (state.storeLatitude != null && state.storeLongitude != null) return
+        if (!state.storeMapUrl.isNullOrBlank()) return
+
+        when (val result = parseMapShareLocation(state.storeLocationInput)) {
+            is StoreLocationParseResult.Parsed -> {
+                val locationInfo = resolveLocation(result.latitude, result.longitude)
+                _uiState.update {
+                    it.copy(
+                        storeLatitude = locationInfo.latitude,
+                        storeLongitude = locationInfo.longitude,
+                        storeRegion = locationInfo.region,
+                        storeAddress = locationInfo.address,
+                        storeMapUrl = result.mapUrl,
+                        validationErrors = it.validationErrors - "storeLocation"
+                    )
+                }
+            }
+
+            is StoreLocationParseResult.LinkOnly -> {
+                onStoreLocationLinkSaved(result.mapUrl)
+            }
+
+            is StoreLocationParseResult.Invalid -> {
+                onStoreLocationParseFailed(result.message)
+            }
+        }
+    }
+
     private fun validate(): Map<String, String> {
         val errors = mutableMapOf<String, String>()
         val state = _uiState.value
@@ -236,8 +285,21 @@ class ManualEntryViewModel @Inject constructor(
             (state.storeLatitude == null || state.storeLongitude == null) &&
             state.storeMapUrl.isNullOrBlank()
         ) {
-            errors["storeLocation"] = "请粘贴地图分享链接并点击解析保存"
+            errors["storeLocation"] = if (state.storeLocationInput.isBlank()) {
+                "请先粘贴地图位置分享链接"
+            } else {
+                state.validationErrors["storeLocation"] ?: "地图位置分享链接无法使用"
+            }
         }
         return errors
     }
+}
+
+private fun fallbackStoreLocationInfo(latitude: Double, longitude: Double): StoreLocationInfo {
+    return StoreLocationInfo(
+        latitude = latitude,
+        longitude = longitude,
+        region = "",
+        address = "$latitude,$longitude"
+    )
 }

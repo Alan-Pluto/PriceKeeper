@@ -17,37 +17,19 @@ class HomeScreenTest {
     val composeTestRule = createComposeRule()
 
     @Test
-    fun homeScreen_displaysTwoEntryCards() {
-        var receiptClicked = false
+    fun homeScreen_displaysManualEntryCard() {
         var manualClicked = false
 
         composeTestRule.setContent {
-            HomeScreen(
-                onNavigateToReceipt = { receiptClicked = true },
+            HomeContent(
+                uiState = HomeUiState(isLoading = false),
                 onNavigateToManual = { manualClicked = true }
             )
         }
 
-        // Verify both cards are displayed
-        composeTestRule.onNodeWithText("拍小票").assertIsDisplayed()
-        composeTestRule.onNodeWithText("手动记").assertIsDisplayed()
-        composeTestRule.onNodeWithText("OCR自动识别录入").assertIsDisplayed()
-        composeTestRule.onNodeWithText("快速添加单品价格").assertIsDisplayed()
-    }
-
-    @Test
-    fun homeScreen_receiptCard_clickTriggersNavigation() {
-        var clicked = false
-
-        composeTestRule.setContent {
-            HomeScreen(
-                onNavigateToReceipt = { clicked = true },
-                onNavigateToManual = {}
-            )
-        }
-
-        composeTestRule.onNodeWithText("拍小票").performClick()
-        assert(clicked) { "Receipt card click should trigger navigation" }
+        composeTestRule.onNodeWithText("手动记一笔").assertIsDisplayed()
+        composeTestRule.onNodeWithText("最近记录").assertIsDisplayed()
+        composeTestRule.onNodeWithText("还没有记录").assertIsDisplayed()
     }
 
     @Test
@@ -55,13 +37,13 @@ class HomeScreenTest {
         var clicked = false
 
         composeTestRule.setContent {
-            HomeScreen(
-                onNavigateToReceipt = {},
+            HomeContent(
+                uiState = HomeUiState(isLoading = false),
                 onNavigateToManual = { clicked = true }
             )
         }
 
-        composeTestRule.onNodeWithText("手动记").performClick()
+        composeTestRule.onNodeWithText("手动记一笔").performClick()
         assert(clicked) { "Manual card click should trigger navigation" }
     }
 }

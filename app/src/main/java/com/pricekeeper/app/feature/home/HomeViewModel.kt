@@ -3,6 +3,7 @@ package com.pricekeeper.app.feature.home
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.pricekeeper.app.domain.repository.GoodsRepository
+import com.pricekeeper.app.domain.repository.PriceRecordRepository
 import com.pricekeeper.app.domain.repository.StoreRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
@@ -14,17 +15,19 @@ import javax.inject.Inject
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     goodsRepository: GoodsRepository,
-    storeRepository: StoreRepository
+    storeRepository: StoreRepository,
+    priceRecordRepository: PriceRecordRepository
 ) : ViewModel() {
 
     val uiState: StateFlow<HomeUiState> = combine(
         goodsRepository.observeGoods(),
-        storeRepository.observeStores()
-    ) { goods, stores ->
+        storeRepository.observeStores(),
+        priceRecordRepository.observeRecentPriceRecords(limit = 5)
+    ) { goods, stores, recentRecords ->
         HomeUiState(
             goodsCount = goods.size,
             storeCount = stores.size,
-            lastRecordDate = null, // Populated via PriceRecordRepository when available
+            recentRecords = recentRecords,
             isLoading = false
         )
     }.stateIn(

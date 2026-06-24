@@ -9,7 +9,6 @@ data class PriceRecord(
     val storeId: Long,
     val price: Double,
     val recordDate: Long,
-    val receiptId: Long?,
     val isPromotion: Boolean,
     val note: String?,
     val createdAt: Long

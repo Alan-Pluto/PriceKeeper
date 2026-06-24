@@ -45,7 +45,16 @@ class GoodsRepositoryImpl @Inject constructor(
             PricePoint(timestamp = it.recordDate, price = it.price)
         }
         val storePrices = priceRecordDao.getStorePrices(id).map {
-            StorePriceInfo(storeName = it.storeName, price = it.price, recordDate = it.recordDate)
+            StorePriceInfo(
+                storeId = it.storeId,
+                storeName = it.storeName,
+                storeAddress = it.storeAddress,
+                storeLatitude = it.storeLatitude,
+                storeLongitude = it.storeLongitude,
+                storeMapUrl = it.storeMapUrl,
+                price = it.price,
+                recordDate = it.recordDate
+            )
         }
 
         return GoodsPriceDetail(

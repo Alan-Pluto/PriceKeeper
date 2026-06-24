@@ -17,7 +17,12 @@ data class GoodsPriceDetail(
  * Price info from a specific store for comparison.
  */
 data class StorePriceInfo(
+    val storeId: Long,
     val storeName: String,
+    val storeAddress: String?,
+    val storeLatitude: Double?,
+    val storeLongitude: Double?,
+    val storeMapUrl: String?,
     val price: Double,
     val recordDate: Long
 )

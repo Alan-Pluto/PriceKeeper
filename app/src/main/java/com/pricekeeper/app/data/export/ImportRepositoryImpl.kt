@@ -2,11 +2,9 @@ package com.pricekeeper.app.data.export
 
 import com.pricekeeper.app.data.local.dao.GoodsDao
 import com.pricekeeper.app.data.local.dao.PriceRecordDao
-import com.pricekeeper.app.data.local.dao.ReceiptDao
 import com.pricekeeper.app.data.local.dao.StoreDao
 import com.pricekeeper.app.data.local.entity.GoodsEntity
 import com.pricekeeper.app.data.local.entity.PriceRecordEntity
-import com.pricekeeper.app.data.local.entity.ReceiptEntity
 import com.pricekeeper.app.data.local.entity.StoreEntity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -21,7 +19,6 @@ class ImportRepositoryImpl @Inject constructor(
     private val goodsDao: GoodsDao,
     private val storeDao: StoreDao,
     private val priceRecordDao: PriceRecordDao,
-    private val receiptDao: ReceiptDao,
     private val json: Json
 ) : ImportRepository {
 
@@ -57,7 +54,6 @@ class ImportRepositoryImpl @Inject constructor(
                 goodsDao.deleteAll()
                 storeDao.deleteAll()
                 priceRecordDao.deleteAll()
-                receiptDao.deleteAll()
                 // Then import all
                 importAll(bundle)
             }
@@ -73,13 +69,11 @@ class ImportRepositoryImpl @Inject constructor(
         if (bundle.priceRecords.isNotEmpty()) {
             priceRecordDao.insertAll(bundle.priceRecords.map { toEntity(it) })
         }
-        bundle.receipts.forEach { receiptDao.insert(toEntity(it)) }
 
         return ImportResult(
             goodsImported = bundle.goods.size,
             storesImported = bundle.stores.size,
-            priceRecordsImported = bundle.priceRecords.size,
-            receiptsImported = bundle.receipts.size
+            priceRecordsImported = bundle.priceRecords.size
         )
     }
 
@@ -115,13 +109,11 @@ class ImportRepositoryImpl @Inject constructor(
         if (bundle.priceRecords.isNotEmpty()) {
             priceRecordDao.insertAll(bundle.priceRecords.map { toEntity(it) })
         }
-        bundle.receipts.forEach { receiptDao.insert(toEntity(it)) }
 
         return ImportResult(
             goodsImported = goodsImported,
             storesImported = storesImported,
             priceRecordsImported = bundle.priceRecords.size,
-            receiptsImported = bundle.receipts.size,
             goodsSkipped = goodsSkipped,
             storesSkipped = storesSkipped
         )
@@ -157,13 +149,11 @@ class ImportRepositoryImpl @Inject constructor(
         bundle.priceRecords.forEach { record ->
             priceRecordDao.insert(toEntity(record))
         }
-        bundle.receipts.forEach { receiptDao.insert(toEntity(it)) }
 
         return ImportResult(
             goodsImported = goodsImported,
             storesImported = storesImported,
             priceRecordsImported = bundle.priceRecords.size,
-            receiptsImported = bundle.receipts.size,
             goodsSkipped = goodsSkipped,
             storesSkipped = storesSkipped
         )
@@ -183,13 +173,7 @@ class ImportRepositoryImpl @Inject constructor(
 
     private fun toEntity(dto: ExportPriceRecord) = PriceRecordEntity(
         id = 0, goodsId = dto.goodsId, storeId = dto.storeId, price = dto.price,
-        recordDate = dto.recordDate, receiptId = dto.receiptId,
-        isPromotion = dto.isPromotion, note = dto.note, createdAt = dto.createdAt
-    )
-
-    private fun toEntity(dto: ExportReceipt) = ReceiptEntity(
-        id = 0, storeId = dto.storeId, totalPrice = dto.totalPrice,
-        buyDate = dto.buyDate, imagePath = dto.imagePath,
-        ocrRawText = dto.ocrRawText, createdAt = dto.createdAt
+        recordDate = dto.recordDate, isPromotion = dto.isPromotion,
+        note = dto.note, createdAt = dto.createdAt
     )
 }

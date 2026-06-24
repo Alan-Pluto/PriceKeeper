@@ -1,47 +1,60 @@
 package com.pricekeeper.app.feature.store
 
-import android.content.Intent
-import android.net.Uri
 import com.pricekeeper.app.core.ui.theme.PriceKeeperTopBar
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Navigation
+import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.pricekeeper.app.domain.model.StoreGoodsItem
+import com.pricekeeper.app.feature.navigation.MapDestination
+import com.pricekeeper.app.feature.navigation.openMapRoutePlan
 import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -51,9 +64,23 @@ import java.util.Locale
 @Composable
 fun StoreDetailScreen(
     onNavigateBack: () -> Unit,
+    onGoodsClick: (Long) -> Unit,
     viewModel: StoreDetailViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    var showReviewEditor by remember { mutableStateOf(false) }
+
+    if (showReviewEditor && uiState is StoreDetailUiState.Success) {
+        StoreReviewEditorSheet(
+            state = uiState as StoreDetailUiState.Success,
+            viewModel = viewModel,
+            onDismiss = { showReviewEditor = false },
+            onSave = {
+                viewModel.saveReview()
+                showReviewEditor = false
+            }
+        )
+    }
 
     Scaffold(
         topBar = {
@@ -84,7 +111,12 @@ fun StoreDetailScreen(
                 }
             }
             is StoreDetailUiState.Success -> {
-                StoreDetailContent(state, viewModel, modifier = Modifier.padding(padding))
+                StoreDetailContent(
+                    state = state,
+                    onEditReview = { showReviewEditor = true },
+                    onGoodsClick = onGoodsClick,
+                    modifier = Modifier.padding(padding)
+                )
             }
         }
     }
@@ -93,7 +125,8 @@ fun StoreDetailScreen(
 @Composable
 private fun StoreDetailContent(
     state: StoreDetailUiState.Success,
-    viewModel: StoreDetailViewModel,
+    onEditReview: () -> Unit,
+    onGoodsClick: (Long) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val currencyFormat = NumberFormat.getCurrencyInstance(Locale.CHINA)
@@ -104,21 +137,32 @@ private fun StoreDetailContent(
         modifier = modifier.fillMaxSize().padding(16.dp)
     ) {
         item {
-            StoreLocationCard(state = state, onNavigate = { openStoreNavigation(context, state) })
-            Spacer(Modifier.height(16.dp))
-        }
-
-        item {
-            StoreReviewCard(state = state, viewModel = viewModel)
-            Spacer(Modifier.height(16.dp))
-        }
-
-        item {
-            Text(
-                "已追踪 ${state.goodsSummaries.size} 件商品",
-                style = MaterialTheme.typography.titleMedium
+            StoreLocationCard(
+                state = state,
+                onNavigate = {
+                    openMapRoutePlan(
+                        context,
+                        MapDestination(
+                            name = state.store.name,
+                            address = state.store.address,
+                            latitude = state.store.latitude,
+                            longitude = state.store.longitude,
+                            mapUrl = state.store.mapUrl
+                        )
+                    )
+                }
             )
-            Spacer(Modifier.height(8.dp))
+            Spacer(Modifier.height(16.dp))
+        }
+
+        item {
+            StoreReviewCard(state = state, onEditReview = onEditReview)
+            Spacer(Modifier.height(20.dp))
+        }
+
+        item {
+            GoodsSectionHeader(count = state.goodsSummaries.size)
+            Spacer(Modifier.height(10.dp))
         }
 
         if (state.goodsSummaries.isEmpty()) {
@@ -131,8 +175,12 @@ private fun StoreDetailContent(
             }
         } else {
             items(state.goodsSummaries, key = { it.goodsId }) { item ->
-                StoreGoodsItemCard(item, currencyFormat, dateFormat)
-                HorizontalDivider()
+                StoreGoodsItemCard(
+                    item = item,
+                    currencyFormat = currencyFormat,
+                    dateFormat = dateFormat,
+                    onClick = { onGoodsClick(item.goodsId) }
+                )
             }
         }
     }
@@ -152,7 +200,7 @@ private fun StoreLocationCard(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column(modifier = Modifier.weight(1f)) {
-                Text("商店位置", style = MaterialTheme.typography.titleSmall)
+                Text("商店位置", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
                 Spacer(Modifier.height(4.dp))
                 Text(
                     state.store.address ?: state.store.region.ifBlank { "暂无详细地址" },
@@ -163,7 +211,7 @@ private fun StoreLocationCard(
             Button(onClick = onNavigate) {
                 Icon(Icons.Default.Navigation, contentDescription = null, modifier = Modifier.size(18.dp))
                 Spacer(Modifier.size(6.dp))
-                Text("导航")
+                Text("路线")
             }
         }
     }
@@ -172,36 +220,49 @@ private fun StoreLocationCard(
 @Composable
 private fun StoreReviewCard(
     state: StoreDetailUiState.Success,
-    viewModel: StoreDetailViewModel
+    onEditReview: () -> Unit
 ) {
-    Card(
+    ElevatedCard(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+        colors = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text("我的评价", style = MaterialTheme.typography.titleSmall)
-            Spacer(Modifier.height(8.dp))
-            OutlinedTextField(
-                value = state.reviewDraft,
-                onValueChange = viewModel::onReviewChange,
-                placeholder = { Text("写下这家店的体验、服务或价格印象") },
-                minLines = 2,
-                modifier = Modifier.fillMaxWidth()
-            )
-            Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable(onClick = onEditReview)
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text("我的评价", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+                Spacer(Modifier.height(4.dp))
                 Text(
-                    if (state.store.myNote.isNullOrBlank()) "暂无评价" else "已保存评价",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                    modifier = Modifier.weight(1f)
+                    state.store.myNote?.takeIf { it.isNotBlank() } ?: "还没有评价",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.78f),
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
                 )
-                TextButton(
-                    onClick = viewModel::saveReview,
-                    enabled = !state.isSavingReview
-                ) {
-                    Text(if (state.isSavingReview) "保存中" else "保存评价")
-                }
             }
+            Button(onClick = onEditReview) {
+                Icon(Icons.Default.Edit, contentDescription = null, modifier = Modifier.size(18.dp))
+                Spacer(Modifier.width(6.dp))
+                Text("编辑")
+            }
+        }
+    }
+}
+
+@Composable
+private fun GoodsSectionHeader(count: Int) {
+    Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text("商品追踪", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+            Text(
+                "共 $count 件商品，按历史价格汇总",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
     }
 }
@@ -210,101 +271,135 @@ private fun StoreReviewCard(
 private fun StoreGoodsItemCard(
     item: StoreGoodsItem,
     currencyFormat: NumberFormat,
-    dateFormat: SimpleDateFormat
+    dateFormat: SimpleDateFormat,
+    onClick: () -> Unit
 ) {
     val hasWave = item.maxPrice > item.minPrice
-    val waveText = if (hasWave) {
-        "波动 ${currencyFormat.format(item.maxPrice - item.minPrice)}"
-    } else {
-        "价格稳定"
-    }
-    val waveColor = if (hasWave) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.primary
-
-    Card(
-        modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+    val minPriceText = currencyFormat.format(item.minPrice)
+    val maxPriceText = currencyFormat.format(item.maxPrice)
+    ElevatedCard(
+        modifier = Modifier.fillMaxWidth().padding(vertical = 7.dp),
+        onClick = onClick,
+        colors = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.elevatedCardElevation(defaultElevation = 1.dp)
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth().padding(14.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(item.goodsName, style = MaterialTheme.typography.titleSmall)
-                Spacer(Modifier.height(4.dp))
-                Text(
-                    item.lastBuyDate?.let { "最近购买：${dateFormat.format(Date(it))}" } ?: "暂无购买时间",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+        Column(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
+            Row(verticalAlignment = Alignment.Top) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        item.goodsName,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    Spacer(Modifier.height(8.dp))
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            Icons.Default.Schedule,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(15.dp)
+                        )
+                        Spacer(Modifier.size(5.dp))
+                        Text(
+                            item.lastBuyDate?.let { "最近购买 ${dateFormat.format(Date(it))}" } ?: "暂无购买时间",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+                PriceRangePill(
+                    minPriceText = minPriceText,
+                    maxPriceText = maxPriceText,
+                    isSinglePrice = !hasWave
                 )
             }
-            Column(
-                horizontalAlignment = Alignment.End,
-                verticalArrangement = Arrangement.Center
-            ) {
+        }
+    }
+}
+
+@Composable
+private fun PriceRangePill(
+    minPriceText: String,
+    maxPriceText: String,
+    isSinglePrice: Boolean
+) {
+    Surface(
+        color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.72f),
+        shape = RoundedCornerShape(18.dp)
+    ) {
+        if (isSinglePrice) {
+            Box(modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)) {
                 Text(
-                    "${currencyFormat.format(item.minPrice)} ~ ${currencyFormat.format(item.maxPrice)}",
-                    style = MaterialTheme.typography.titleSmall,
+                    minPriceText,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.primary
                 )
-                Spacer(Modifier.height(6.dp))
-                Text(
-                    waveText,
-                    style = MaterialTheme.typography.labelMedium,
-                    color = waveColor,
-                    modifier = Modifier
-                        .background(waveColor.copy(alpha = 0.12f), RoundedCornerShape(999.dp))
-                        .padding(horizontal = 10.dp, vertical = 4.dp)
-                )
+            }
+        } else {
+            Row(
+                modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
+                horizontalArrangement = Arrangement.spacedBy(14.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text("最低价", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
+                    Text(minPriceText, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+                }
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text("最高价", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.tertiary)
+                    Text(maxPriceText, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.tertiary)
+                }
             }
         }
     }
 }
 
-private fun openStoreNavigation(
-    context: android.content.Context,
-    state: StoreDetailUiState.Success
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun StoreReviewEditorSheet(
+    state: StoreDetailUiState.Success,
+    viewModel: StoreDetailViewModel,
+    onDismiss: () -> Unit,
+    onSave: () -> Unit
 ) {
-    val latitude = state.store.latitude
-    val longitude = state.store.longitude
-    if (latitude != null && longitude != null) {
-        val amapIntent = Intent(Intent.ACTION_VIEW, buildAmapNavigationUri(latitude, longitude, state.store.name))
-            .setPackage(AMAP_PACKAGE_NAME)
-        try {
-            context.startActivity(amapIntent)
-            return
-        } catch (_: Exception) {
-            // 未安装高德或 URI 不被支持时，继续使用系统通用 geo 协议兜底。
-        }
-    }
-
-    val fallbackUri = when {
-        latitude != null && longitude != null ->
-            Uri.parse("geo:$latitude,$longitude?q=$latitude,$longitude(${Uri.encode(state.store.name)})")
-        !state.store.mapUrl.isNullOrBlank() -> Uri.parse(state.store.mapUrl)
-        else -> {
-            val query = state.store.address ?: state.store.name
-            Uri.parse("geo:0,0?q=${Uri.encode(query)}")
-        }
-    }
-    val intent = Intent(Intent.ACTION_VIEW, fallbackUri)
-    try {
-        context.startActivity(intent)
-    } catch (_: Exception) {
-        if (!state.store.mapUrl.isNullOrBlank() && fallbackUri.toString() != state.store.mapUrl) {
-            context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(state.store.mapUrl)))
+    ModalBottomSheet(onDismissRequest = onDismiss) {
+        Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 8.dp)) {
+            Text("编辑我的评价", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+            Spacer(Modifier.height(6.dp))
+            Text(
+                "这段内容只在本机保存，可随时修改。",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Spacer(Modifier.height(16.dp))
+            OutlinedTextField(
+                value = state.reviewDraft,
+                onValueChange = viewModel::onReviewChange,
+                placeholder = { Text("例如：停车方便，晚饭时段人多；牛奶价格经常比附近便宜。") },
+                minLines = 5,
+                maxLines = 8,
+                modifier = Modifier.fillMaxWidth().heightIn(min = 150.dp)
+            )
+            Spacer(Modifier.height(16.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                TextButton(onClick = onDismiss, modifier = Modifier.weight(1f)) {
+                    Text("取消")
+                }
+                Button(
+                    onClick = onSave,
+                    enabled = !state.isSavingReview,
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text(if (state.isSavingReview) "保存中" else "保存评价")
+                }
+            }
+            Spacer(Modifier.height(24.dp))
         }
     }
 }
-
-internal fun buildAmapNavigationUri(latitude: Double, longitude: Double, name: String): Uri {
-    return Uri.parse(
-        "androidamap://navi?sourceApplication=PriceKeeper" +
-            "&lat=$latitude" +
-            "&lon=$longitude" +
-            "&poiname=${Uri.encode(name)}" +
-            "&dev=0" +
-            "&style=2"
-    )
-}
-
-private const val AMAP_PACKAGE_NAME = "com.autonavi.minimap"

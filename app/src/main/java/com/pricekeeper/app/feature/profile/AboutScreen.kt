@@ -69,7 +69,7 @@ fun AboutScreen(onBack: () -> Unit) {
             Spacer(Modifier.height(16.dp))
 
             Text(
-                "计价器 PriceKeeper",
+                "计价本 PriceKeeper",
                 style = MaterialTheme.typography.headlineMedium,
                 fontWeight = FontWeight.Bold
             )
@@ -110,7 +110,7 @@ fun AboutScreen(onBack: () -> Unit) {
                     Text("🔒 隐私承诺", style = MaterialTheme.typography.titleSmall)
                     Spacer(Modifier.height(4.dp))
                     Text(
-                        "所有数据仅存储在设备本地，不上传任何云端。OCR识别全程在设备端完成，小票图片永不离开手机。",
+                        "所有商品、商店、价格和位置数据仅存储在设备本地，不上传任何云端，也不采集图片。",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -127,7 +127,7 @@ fun AboutScreen(onBack: () -> Unit) {
                     Text("🛠️ 技术栈", style = MaterialTheme.typography.titleSmall)
                     Spacer(Modifier.height(4.dp))
                     Text(
-                        "Kotlin · Jetpack Compose · Room · Hilt · ML Kit · CameraX",
+                        "Kotlin · Jetpack Compose · Room · Hilt · DataStore",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -136,7 +136,7 @@ fun AboutScreen(onBack: () -> Unit) {
 
             Spacer(Modifier.height(24.dp))
             Text(
-                "Made with ❤️ by PriceKeeper Team",
+                "Made with ❤️ by Alan",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.35f)
             )

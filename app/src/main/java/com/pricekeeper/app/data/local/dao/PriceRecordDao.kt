@@ -21,7 +21,12 @@ data class GoodsPriceAggregate(
  * Intermediate result for store price comparison (TDD §5.3).
  */
 data class StorePriceSummary(
+    val storeId: Long,
     val storeName: String,
+    val storeAddress: String?,
+    val storeLatitude: Double?,
+    val storeLongitude: Double?,
+    val storeMapUrl: String?,
     val price: Double,
     val recordDate: Long
 )
@@ -35,6 +40,18 @@ data class StoreGoodsSummary(
     val minPrice: Double,
     val maxPrice: Double,
     val lastBuyDate: Long?
+)
+
+/**
+ * Lightweight home-feed row. Keep this intentionally small so the Home page
+ * can render recent manual entries without loading full goods/store details.
+ */
+data class RecentPriceRecordSummary(
+    val id: Long,
+    val goodsName: String,
+    val storeName: String,
+    val price: Double,
+    val recordDate: Long
 )
 
 @Dao
@@ -81,7 +98,15 @@ interface PriceRecordDao {
     // ---- TDD §5.3: Store price comparison ----
     @Query(
         """
-        SELECT s.name AS storeName, pr.price, pr.record_date AS recordDate
+        SELECT
+            s.id AS storeId,
+            s.name AS storeName,
+            s.address AS storeAddress,
+            s.latitude AS storeLatitude,
+            s.longitude AS storeLongitude,
+            s.map_url AS storeMapUrl,
+            pr.price,
+            pr.record_date AS recordDate
         FROM price_records pr
         JOIN store s ON pr.store_id = s.id
         WHERE pr.goods_id = :goodsId
@@ -136,8 +161,23 @@ interface PriceRecordDao {
     @Query("SELECT * FROM price_records WHERE store_id = :storeId ORDER BY record_date DESC")
     fun observeByStoreId(storeId: Long): Flow<List<PriceRecordEntity>>
 
-    @Query("SELECT * FROM price_records WHERE receipt_id = :receiptId")
-    suspend fun getByReceiptId(receiptId: Long): List<PriceRecordEntity>
+    @Query(
+        """
+        SELECT
+            pr.id AS id,
+            g.name AS goodsName,
+            s.name AS storeName,
+            pr.price AS price,
+            pr.record_date AS recordDate
+        FROM price_records pr
+        JOIN goods g ON pr.goods_id = g.id
+        JOIN store s ON pr.store_id = s.id
+        ORDER BY pr.record_date DESC, pr.id DESC
+        LIMIT :limit
+        """
+    )
+    fun observeRecentRecords(limit: Int): Flow<List<RecentPriceRecordSummary>>
+
 }
 
 /**

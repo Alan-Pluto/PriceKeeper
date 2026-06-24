@@ -14,8 +14,6 @@ import com.pricekeeper.app.feature.manual.ManualEntryScreen
 import com.pricekeeper.app.feature.profile.AboutScreen
 import com.pricekeeper.app.feature.profile.CategoryManagementScreen
 import com.pricekeeper.app.feature.profile.ProfileScreen
-import com.pricekeeper.app.feature.receipt.ReceiptCaptureScreen
-import com.pricekeeper.app.feature.receipt.ReceiptRecognizeScreen
 import com.pricekeeper.app.feature.store.StoreDetailScreen
 import com.pricekeeper.app.feature.store.StoreScreen
 
@@ -33,9 +31,6 @@ fun AppNavGraph(
         // Home
         composable(Route.HOME) {
             HomeScreen(
-                onNavigateToReceipt = {
-                    navController.navigate(Route.RECEIPT_CAPTURE)
-                },
                 onNavigateToManual = {
                     navController.navigate(Route.MANUAL_ENTRY)
                 }
@@ -75,36 +70,16 @@ fun AppNavGraph(
             route = Route.STORE_DETAIL,
             arguments = listOf(navArgument("storeId") { type = NavType.LongType })
         ) {
-            StoreDetailScreen(onNavigateBack = { navController.popBackStack() })
+            StoreDetailScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onGoodsClick = { goodsId -> navController.navigate(Route.goodsDetail(goodsId)) }
+            )
         }
 
         // Manual entry
         composable(Route.MANUAL_ENTRY) {
             ManualEntryScreen(
                 onSaveAndBack = { navController.popBackStack() }
-            )
-        }
-
-        // Receipt capture (Step 1)
-        composable(Route.RECEIPT_CAPTURE) {
-            ReceiptCaptureScreen(
-                onImageReady = { imagePath ->
-                    navController.navigate(Route.receiptRecognize(imagePath))
-                },
-                onBack = { navController.popBackStack() }
-            )
-        }
-
-        // Receipt recognize (Step 2: OCR + edit)
-        composable(
-            route = Route.RECEIPT_RECOGNIZE,
-            arguments = listOf(navArgument("imagePath") { type = NavType.StringType })
-        ) {
-            ReceiptRecognizeScreen(
-                onConfirmSave = { _, _, _ ->
-                    navController.popBackStack(Route.HOME, inclusive = false)
-                },
-                onBack = { navController.popBackStack() }
             )
         }
 

@@ -24,7 +24,7 @@ import com.pricekeeper.app.domain.model.PricePoint
 @Composable
 fun PriceTrendChart(
     points: List<PricePoint>,
-    modifier: Modifier = Modifier.fillMaxWidth().height(200.dp)
+    modifier: Modifier = Modifier.fillMaxWidth().height(280.dp)
 ) {
     if (points.isEmpty()) {
         Box(modifier, contentAlignment = Alignment.Center) {
@@ -49,7 +49,7 @@ fun PriceTrendChart(
         val paddingLeft = 50f
         val paddingRight = 16f
         val paddingTop = 16f
-        val paddingBottom = 28f
+        val paddingBottom = 70f
 
         val chartWidth = size.width - paddingLeft - paddingRight
         val chartHeight = size.height - paddingTop - paddingBottom
@@ -73,9 +73,9 @@ fun PriceTrendChart(
         if (points.isNotEmpty()) {
             val firstLabel = formatDateLabel(points.first().timestamp)
             val lastLabel = formatDateLabel(points.last().timestamp)
-            drawText(textMeasurer, firstLabel, Offset(paddingLeft, size.height - paddingBottom + 4f), labelStyle)
+            drawText(textMeasurer, firstLabel, Offset(paddingLeft, size.height - paddingBottom + 28f), labelStyle)
             val lastW = textMeasurer.measure(lastLabel, labelStyle).size.width
-            drawText(textMeasurer, lastLabel, Offset(size.width - paddingRight - lastW, size.height - paddingBottom + 4f), labelStyle)
+            drawText(textMeasurer, lastLabel, Offset(size.width - paddingRight - lastW, size.height - paddingBottom + 28f), labelStyle)
         }
 
         // Price line

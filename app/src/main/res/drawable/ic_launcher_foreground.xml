@@ -4,11 +4,78 @@
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <!-- P letter styled as ¥ symbol, representing PriceKeeper -->
+    <!--
+        App logo for "计价本".
+        Safe editing notes:
+        - The bill is centered around x=54 and y=56.
+        - Move the bill by adjusting the paths that start around x=31/y=26.
+        - Move the floating pen by adjusting the rotated group pivot/translate values.
+        - Keep important artwork inside roughly x=18..90 and y=18..90 for launcher cropping.
+    -->
+
+    <!-- Soft bill shadow, giving the central receipt a little depth on the white background. -->
+    <path
+        android:fillColor="#22000000"
+        android:pathData="M35,30h38c3.31,0 6,2.69 6,6v47c0,1.39 -1.56,2.21 -2.71,1.43L72,81.5l-4.29,2.93c-1.02,0.7 -2.4,0.7 -3.42,0L60,81.5l-4.29,2.93c-1.02,0.7 -2.4,0.7 -3.42,0L48,81.5l-4.29,2.93c-1.15,0.78 -2.71,-0.04 -2.71,-1.43V36c0,-3.31 2.69,-6 6,-6z" />
+
+    <!-- Main bill body. The torn lower edge keeps the icon recognizable at small sizes. -->
     <path
         android:fillColor="#FFFFFF"
-        android:pathData="M36,30h20c3.3,0 6,2.7 6,6v6l-14,12h14v6H42v6h24v6H42c-3.3,0 -6,-2.7 -6,-6v-6l14,-12v-6H36V30z" />
+        android:pathData="M31,26h38c3.31,0 6,2.69 6,6v47c0,1.39 -1.56,2.21 -2.71,1.43L68,77.5l-4.29,2.93c-1.02,0.7 -2.4,0.7 -3.42,0L56,77.5l-4.29,2.93c-1.02,0.7 -2.4,0.7 -3.42,0L44,77.5l-4.29,2.93c-1.15,0.78 -2.71,-0.04 -2.71,-1.43V32c0,-3.31 2.69,-6 6,-6z" />
+
+    <!-- Bill outline. Change this color if you want a warmer/cooler brand tone. -->
     <path
-        android:fillColor="#FFFFFF"
-        android:pathData="M60,48l-8,0l0,-12l8,0z" />
+        android:fillColor="#2F7D5B"
+        android:fillType="evenOdd"
+        android:pathData="M37,26h32c3.31,0 6,2.69 6,6v47c0,1.39 -1.56,2.21 -2.71,1.43L68,77.5l-4.29,2.93c-1.02,0.7 -2.4,0.7 -3.42,0L56,77.5l-4.29,2.93c-1.02,0.7 -2.4,0.7 -3.42,0L44,77.5l-4.29,2.93c-1.15,0.78 -2.71,-0.04 -2.71,-1.43V32c0,-3.31 2.69,-6 6,-6zM43,31c-0.55,0 -1,0.45 -1,1v42.21l2,-1.36l7,4.78l5,-3.42l5,3.42l5,-3.42l4,2.73V32c0,-0.55 -0.45,-1 -1,-1H43z" />
+
+    <!-- Top receipt title mark: a small coin/price cue instead of app text for better legibility. -->
+    <path
+        android:fillColor="#E9F7EF"
+        android:pathData="M47,38a7,7 0,1 0,14 0a7,7 0,1 0,-14 0" />
+    <path
+        android:fillColor="#2F7D5B"
+        android:pathData="M53,33h2v2h3v2h-3v2h3v2h-3v3h-2v-3h-3v-2h3v-2h-3v-2h3z" />
+
+    <!-- Receipt item lines. Edit x/y values here to tune line length and spacing. -->
+    <path
+        android:fillColor="#9CC8B2"
+        android:pathData="M47,51h18a2,2 0,0 1,0 4H47a2,2 0,0 1,0 -4z" />
+    <path
+        android:fillColor="#CFE5D8"
+        android:pathData="M47,60h13a2,2 0,0 1,0 4H47a2,2 0,0 1,0 -4z" />
+    <path
+        android:fillColor="#2F7D5B"
+        android:pathData="M47,69h16a2,2 0,0 1,0 4H47a2,2 0,0 1,0 -4z" />
+
+    <!-- Floating pen. The group rotation makes it look like it is writing on the bill. -->
+    <group
+        android:pivotX="75"
+        android:pivotY="34"
+        android:rotation="-28">
+        <!-- Pen shadow, slightly offset from the pen body. -->
+        <path
+            android:fillColor="#26000000"
+            android:pathData="M66,30h24a3,3 0,0 1,3 3v6a3,3 0,0 1,-3 3H66z" />
+        <!-- Pen barrel. -->
+        <path
+            android:fillColor="#F2B84B"
+            android:pathData="M64,27h24a3,3 0,0 1,3 3v6a3,3 0,0 1,-3 3H64z" />
+        <!-- Pen grip. -->
+        <path
+            android:fillColor="#2F7D5B"
+            android:pathData="M58,27h8v12h-8z" />
+        <!-- Pen tip. -->
+        <path
+            android:fillColor="#263238"
+            android:pathData="M50,33l8,-6v12z" />
+        <path
+            android:fillColor="#FFFFFF"
+            android:pathData="M82,30h5a1,1 0,0 1,1 1v4a1,1 0,0 1,-1 1h-5z" />
+    </group>
+
+    <!-- Small writing mark under the pen tip to reinforce "recording prices". -->
+    <path
+        android:fillColor="#F2B84B"
+        android:pathData="M40,46c3.5,-2.2 7.3,-2.5 11,-0.8c1,0.46 1.44,1.65 0.98,2.65c-0.46,1 -1.65,1.44 -2.65,0.98c-2.45,-1.13 -4.81,-0.93 -7.21,0.58c-0.93,0.59 -2.17,0.31 -2.76,-0.63c-0.59,-0.93 -0.31,-2.17 0.64,-2.78z" />
 </vector>

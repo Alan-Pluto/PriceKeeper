@@ -43,9 +43,6 @@ data class PriceRecordEntity(
     @ColumnInfo(name = "record_date")
     val recordDate: Long,
 
-    @ColumnInfo(name = "receipt_id")
-    val receiptId: Long? = null,
-
     @ColumnInfo(name = "is_promotion")
     val isPromotion: Boolean = false,
 

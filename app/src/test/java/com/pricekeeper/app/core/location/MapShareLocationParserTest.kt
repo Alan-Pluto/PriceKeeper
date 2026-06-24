@@ -1,4 +1,4 @@
-package com.pricekeeper.app.feature.manual
+package com.pricekeeper.app.core.location
 
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -8,7 +8,7 @@ import org.junit.Test
 import java.net.ServerSocket
 import kotlin.concurrent.thread
 
-class StoreLocationParserTest {
+class MapShareLocationParserTest {
 
     @Test
     fun `parseStoreCoordinates parses comma separated coordinates`() {

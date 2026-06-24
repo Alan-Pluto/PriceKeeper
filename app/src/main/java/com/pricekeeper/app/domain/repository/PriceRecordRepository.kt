@@ -1,6 +1,7 @@
 package com.pricekeeper.app.domain.repository
 
 import com.pricekeeper.app.domain.model.PriceRecord
+import com.pricekeeper.app.domain.model.RecentPriceRecord
 import kotlinx.coroutines.flow.Flow
 
 /**
@@ -25,8 +26,7 @@ interface PriceRecordRepository {
         storeLongitude: Double? = null,
         storeMapUrl: String? = null,
         isPromotion: Boolean = false,
-        note: String? = null,
-        receiptId: Long? = null
+        note: String? = null
     ): Long
 
     /** Observe all price records for a given goods item. */
@@ -35,8 +35,8 @@ interface PriceRecordRepository {
     /** Observe all price records for a given store. */
     fun observePriceRecordsByStore(storeId: Long): Flow<List<PriceRecord>>
 
-    /** Get price records associated with a receipt. */
-    suspend fun getPriceRecordsByReceipt(receiptId: Long): List<PriceRecord>
+    /** Observe the latest records for the Home feed. */
+    fun observeRecentPriceRecords(limit: Int = 20): Flow<List<RecentPriceRecord>>
 
     /** Delete a single price record. */
     suspend fun deletePriceRecord(id: Long)

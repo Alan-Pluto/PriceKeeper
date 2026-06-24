@@ -4,8 +4,10 @@ import com.pricekeeper.app.domain.repository.CategoryRepository
 import com.pricekeeper.app.domain.repository.GoodsRepository
 import com.pricekeeper.app.domain.repository.StoreRepository
 import com.pricekeeper.app.domain.usecase.AddManualPriceRecordUseCase
+import com.pricekeeper.app.core.location.StoreLocationInfo
 import com.pricekeeper.app.helpers.MainDispatcherRule
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.flow.first
@@ -104,6 +106,46 @@ class ManualEntryViewModelTest {
         val state = viewModel.uiState.first()
         assertTrue(state.saveSuccess)
         assertTrue(state.pendingBackAfterSave)
+    }
+
+    @Test
+    fun `save parses map link and uses resolved store address and region`() = runTest {
+        coEvery { categoryRepository.addCategory(any()) } returns Unit
+        coEvery { useCase(any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any()) } returns Result.success(42L)
+        createViewModel()
+        viewModel.onGoodsNameChange("牛奶")
+        viewModel.onPriceChange("12.5")
+        viewModel.onNewStoreToggle()
+        viewModel.onStoreNameChange("永辉商店")
+        val mapUrl = "https://www.amap.com/?p=B0TEST,31.2304,121.4737,store,address"
+        viewModel.onStoreLocationInputChange(mapUrl)
+
+        viewModel.saveOnly { latitude, longitude ->
+            StoreLocationInfo(
+                latitude = latitude,
+                longitude = longitude,
+                region = "上海市黄浦区",
+                address = "上海市黄浦区人民大道",
+                mapUrl = mapUrl
+            )
+        }
+
+        coVerify {
+            useCase(
+                goodsName = "牛奶",
+                storeName = "永辉商店",
+                price = 12.5,
+                recordDate = any(),
+                goodsCategory = "未分类",
+                storeRegion = "上海市黄浦区",
+                storeAddress = "上海市黄浦区人民大道",
+                storeLatitude = 31.2304,
+                storeLongitude = 121.4737,
+                storeMapUrl = mapUrl,
+                isPromotion = false,
+                note = null
+            )
+        }
     }
 
     @Test

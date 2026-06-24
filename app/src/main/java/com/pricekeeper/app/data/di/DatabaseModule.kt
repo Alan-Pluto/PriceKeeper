@@ -4,7 +4,6 @@ import android.content.Context
 import androidx.room.Room
 import com.pricekeeper.app.data.local.dao.GoodsDao
 import com.pricekeeper.app.data.local.dao.PriceRecordDao
-import com.pricekeeper.app.data.local.dao.ReceiptDao
 import com.pricekeeper.app.data.local.dao.StoreDao
 import com.pricekeeper.app.data.local.database.PriceKeeperDatabase
 import dagger.Module
@@ -45,10 +44,5 @@ object DatabaseModule {
     @Provides
     fun providePriceRecordDao(database: PriceKeeperDatabase): PriceRecordDao {
         return database.priceRecordDao()
-    }
-
-    @Provides
-    fun provideReceiptDao(database: PriceKeeperDatabase): ReceiptDao {
-        return database.receiptDao()
     }
 }

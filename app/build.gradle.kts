@@ -93,15 +93,6 @@ dependencies {
     // Image loading
     implementation(libs.coil.compose)
 
-    // ML Kit (on-device OCR)
-    implementation(libs.mlkit.text.recognition.chinese)
-
-    // CameraX
-    implementation(libs.camerax.core)
-    implementation(libs.camerax.camera2)
-    implementation(libs.camerax.lifecycle)
-    implementation(libs.camerax.view)
-
     // Serialization (JSON import/export)
     implementation(libs.kotlinx.serialization.json)
 

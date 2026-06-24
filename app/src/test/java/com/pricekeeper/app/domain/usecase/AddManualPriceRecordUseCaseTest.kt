@@ -17,7 +17,7 @@ class AddManualPriceRecordUseCaseTest {
     @Test
     fun `invoke with valid inputs returns success`() = runTest {
         coEvery {
-            repository.addPriceRecord(any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any())
+            repository.addPriceRecord(any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any())
         } returns 42L
 
         val result = useCase("牛奶", "永辉商店", 12.5)
@@ -37,8 +37,7 @@ class AddManualPriceRecordUseCaseTest {
                 storeLongitude = null,
                 storeMapUrl = null,
                 isPromotion = false,
-                note = null,
-                receiptId = null
+                note = null
             )
         }
     }
@@ -72,7 +71,7 @@ class AddManualPriceRecordUseCaseTest {
     @Test
     fun `invoke trims whitespace from names`() = runTest {
         coEvery {
-            repository.addPriceRecord(any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any())
+            repository.addPriceRecord(any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any())
         } returns 1L
 
         val result = useCase("  牛奶  ", "  永辉商店  ", 10.0)
@@ -91,8 +90,7 @@ class AddManualPriceRecordUseCaseTest {
                 storeLongitude = any(),
                 storeMapUrl = any(),
                 isPromotion = any(),
-                note = any(),
-                receiptId = any()
+                note = any()
             )
         }
     }

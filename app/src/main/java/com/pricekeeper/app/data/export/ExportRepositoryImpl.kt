@@ -2,7 +2,6 @@ package com.pricekeeper.app.data.export
 
 import com.pricekeeper.app.data.local.dao.GoodsDao
 import com.pricekeeper.app.data.local.dao.PriceRecordDao
-import com.pricekeeper.app.data.local.dao.ReceiptDao
 import com.pricekeeper.app.data.local.dao.StoreDao
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -17,7 +16,6 @@ class ExportRepositoryImpl @Inject constructor(
     private val goodsDao: GoodsDao,
     private val storeDao: StoreDao,
     private val priceRecordDao: PriceRecordDao,
-    private val receiptDao: ReceiptDao,
     private val json: Json
 ) : ExportRepository {
 
@@ -27,14 +25,12 @@ class ExportRepositoryImpl @Inject constructor(
             val goods = goodsDao.getAllSync()
             val stores = storeDao.getAllSync()
             val priceRecords = priceRecordDao.getAllSync()
-            val receipts = receiptDao.getAllSync()
 
             val bundle = ExportBundle(
                 exportedAt = System.currentTimeMillis(),
                 goods = goods.map { it.toExport() },
                 stores = stores.map { it.toExport() },
-                priceRecords = priceRecords.map { it.toExport() },
-                receipts = receipts.map { it.toExport() }
+                priceRecords = priceRecords.map { it.toExport() }
             )
 
             val jsonString = json.encodeToString(ExportBundle.serializer(), bundle)
@@ -48,7 +44,6 @@ class ExportRepositoryImpl @Inject constructor(
                 goodsCount = goods.size,
                 storeCount = stores.size,
                 priceRecordCount = priceRecords.size,
-                receiptCount = receipts.size,
                 fileSizeBytes = jsonString.toByteArray(Charsets.UTF_8).size.toLong()
             )
         }
@@ -67,12 +62,7 @@ class ExportRepositoryImpl @Inject constructor(
 
     private fun com.pricekeeper.app.data.local.entity.PriceRecordEntity.toExport() = ExportPriceRecord(
         id = id, goodsId = goodsId, storeId = storeId, price = price,
-        recordDate = recordDate, receiptId = receiptId, isPromotion = isPromotion,
+        recordDate = recordDate, isPromotion = isPromotion,
         note = note, createdAt = createdAt
-    )
-
-    private fun com.pricekeeper.app.data.local.entity.ReceiptEntity.toExport() = ExportReceipt(
-        id = id, storeId = storeId, totalPrice = totalPrice, buyDate = buyDate,
-        imagePath = imagePath, ocrRawText = ocrRawText, createdAt = createdAt
     )
 }

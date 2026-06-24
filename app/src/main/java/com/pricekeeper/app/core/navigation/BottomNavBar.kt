@@ -4,7 +4,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -12,20 +11,18 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.automirrored.filled.ReceiptLong
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.BarChart
+import androidx.compose.material.icons.filled.EditNote
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Store
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
 /**
@@ -38,7 +35,7 @@ data class BottomNavItem(
 )
 
 val bottomNavItems = listOf(
-    BottomNavItem(Route.HOME, "记一笔", Icons.AutoMirrored.Filled.ReceiptLong),
+    BottomNavItem(Route.HOME, "记一笔", Icons.Default.EditNote),
     BottomNavItem(Route.GOODS, "物价", Icons.Default.BarChart),
     BottomNavItem(Route.STORE, "商店", Icons.Default.Store),
     BottomNavItem(Route.PROFILE, "我的", Icons.Default.Person)
@@ -53,7 +50,7 @@ fun BottomNavBar(
         modifier = Modifier
             .fillMaxWidth()
             // 底部导航高度控制点：如果觉得太高可改为 60.dp，想更舒展可改为 72.dp。
-            .height(64.dp),
+            .height(58.dp),
         color = MaterialTheme.colorScheme.surface,
         tonalElevation = 3.dp,
         shadowElevation = 6.dp
@@ -96,16 +93,15 @@ private fun BottomNavItemView(
         MaterialTheme.colorScheme.surface
     }
 
-    Column(
+    Box(
         modifier = modifier
             .fillMaxHeight()
             .clickable(onClick = onClick),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+        contentAlignment = Alignment.Center
     ) {
         Box(
             modifier = Modifier
-                .size(width = 48.dp, height = 28.dp)
+                .size(width = 52.dp, height = 36.dp)
                 // 选中态背景固定占位，避免页面切换时 Material indicator 重新测量造成闪烁。
                 .background(indicatorColor, RoundedCornerShape(percent = 50)),
             contentAlignment = Alignment.Center
@@ -114,15 +110,8 @@ private fun BottomNavItemView(
                 imageVector = item.icon,
                 contentDescription = item.label,
                 tint = contentColor,
-                modifier = Modifier.size(20.dp)
+                modifier = Modifier.size(24.dp)
             )
         }
-        Text(
-            text = item.label,
-            style = MaterialTheme.typography.labelSmall,
-            fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
-            color = contentColor,
-            modifier = Modifier.padding(top = 2.dp)
-        )
     }
 }

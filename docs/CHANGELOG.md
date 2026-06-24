@@ -1,35 +1,36 @@
 # Changelog
 
-## v1.0.0 — Phase 2 (功能完备)
+## v1.1.0 — 手动录入重构版
 
-### 新增
-- **OCR 识别流水线**：端侧 ML Kit 中文识别 → Parser 多策略解析 → 可编辑商品列表 → 写入数据库
-- **小票解析多策略**：DefaultParser + YonghuiParser + HemaParser + 策略自动选择器
-- **相机/相册采集**：CameraX 预览 + 系统相册选择 + 图片压缩（1080px）
-- **数据导入导出**：`.mypd` 格式（JSON + GZIP），支持 OVERWRITE/MERGE/SKIP 三种冲突策略
-- **价格趋势图**：Compose Canvas 折线图，支持空状态和数据点渲染
-- **商店比价图**：横向柱状图，最便宜/最贵着色
-- **仪表盘统计**：商品数/商店数/总消费/小票数实时聚合
-- **Profile 屏幕**：仪表盘卡片 + 导出/导入按钮 + 深色模式开关 + 分类管理入口
-- **Reusable UI 组件**：EmptyStateView + ErrorStateView
+### 产品调整
 
-### 依赖新增
-- `com.google.mlkit:text-recognition-chinese:16.0.1`
-- `androidx.camera:camera-*:1.3.4`
-- `org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3`
-- `kotlin("plugin.serialization")`
+- 将产品路线聚焦到手动录入、价格追踪、商店管理、地图路线规划和本地数据管理。
+- 永久移除小票识别、OCR、相机/相册采集、图片压缩、小票解析和小票存档能力。
+- 首页改为单一主入口“手动记一笔”，弱化旧的采集心智，减少用户选择成本。
+
+### 代码重构
+
+- 删除 `feature/receipt`、`data/ocr`、`data/parser` 相关 UI、引擎、解析器和 ViewModel。
+- 删除 `ReceiptRepository`、`ReceiptDao`、`ReceiptEntity`、`Receipt` 领域模型和相关 Mapper。
+- 移除 ML Kit、CameraX 依赖和 `CAMERA` 权限。
+- 价格记录模型删除 `receiptId` 字段，Repository、UseCase、DAO、导入导出同步简化。
+- 仪表盘统计改为商品数、商店数。
+- 商品详情和商店详情统一复用地图路线规划逻辑。
 
 ### 数据库
-- **无 Schema 迁移** — v1 已包含 Phase 2 所需全部列
 
----
+- 数据库版本升级到 v3。
+- `MIGRATION_2_3` 重建 `price_records` 表，移除 `receipt_id` 字段。
+- 迁移时删除旧版 `receipts` 表。
+- 旧 `.mypd` 文件中的旧字段会被导入器忽略，只导入商品、商店和价格记录。
 
-## v1.0.0 — Phase 1 (MVP 内核)
+## v1.0.0 — 本地物价记录基础版
 
 ### 新增
-- 4 个 Room Entities + DAOs + TDD §5.1-5.5 聚合查询
-- 4 个 Repository 接口 + 实现 + Mappers
-- 5 个 UseCases
-- 6 个 Compose 屏幕：Home, GoodsList, GoodsDetail, Store, ManualEntry, Profile(placeholder)
-- 4-tab Bottom Navigation
-- CI workflow + PR template + .editorconfig
+
+- 手动录入商品、商店、分类、价格、购买日期和备注。
+- 商品列表、分类筛选、搜索、价格趋势图和商店比价。
+- 商店列表、地区分组、商店详情、用户评价和已追踪商品列表。
+- 高德地图短链解析、地图链接保存和路线规划页唤起。
+- `.mypd` 数据导入导出，支持覆盖、合并、跳过冲突策略。
+- Profile 仪表盘、数据管理、分类管理和关于页面。

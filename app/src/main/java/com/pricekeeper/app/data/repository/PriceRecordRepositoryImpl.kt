@@ -8,6 +8,7 @@ import com.pricekeeper.app.data.local.entity.PriceRecordEntity
 import com.pricekeeper.app.data.local.entity.StoreEntity
 import com.pricekeeper.app.data.mapper.toDomain
 import com.pricekeeper.app.domain.model.PriceRecord
+import com.pricekeeper.app.domain.model.RecentPriceRecord
 import com.pricekeeper.app.domain.repository.PriceRecordRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -33,8 +34,7 @@ class PriceRecordRepositoryImpl @Inject constructor(
         storeLongitude: Double?,
         storeMapUrl: String?,
         isPromotion: Boolean,
-        note: String?,
-        receiptId: Long?
+        note: String?
     ): Long {
         // Find or create goods
         val goodsId = findOrCreateGoods(goodsName, goodsCategory)
@@ -54,7 +54,6 @@ class PriceRecordRepositoryImpl @Inject constructor(
             storeId = storeId,
             price = price,
             recordDate = recordDate,
-            receiptId = receiptId,
             isPromotion = isPromotion,
             note = note
         )
@@ -124,8 +123,18 @@ class PriceRecordRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun getPriceRecordsByReceipt(receiptId: Long): List<PriceRecord> {
-        return priceRecordDao.getByReceiptId(receiptId).map { it.toDomain() }
+    override fun observeRecentPriceRecords(limit: Int): Flow<List<RecentPriceRecord>> {
+        return priceRecordDao.observeRecentRecords(limit).map { records ->
+            records.map {
+                RecentPriceRecord(
+                    id = it.id,
+                    goodsName = it.goodsName,
+                    storeName = it.storeName,
+                    price = it.price,
+                    recordDate = it.recordDate
+                )
+            }
+        }
     }
 
     override suspend fun deletePriceRecord(id: Long) {

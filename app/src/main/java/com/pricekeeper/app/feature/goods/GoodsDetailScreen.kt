@@ -9,13 +9,16 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -25,14 +28,20 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Navigation
+import androidx.compose.material.icons.filled.Storefront
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.pricekeeper.app.domain.model.StorePriceInfo
 import com.pricekeeper.app.feature.chart.PriceTrendChart
+import com.pricekeeper.app.feature.navigation.MapDestination
+import com.pricekeeper.app.feature.navigation.openMapRoutePlan
 import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -98,7 +107,7 @@ fun GoodsDetailScreen(
 }
 
 @Composable
-private fun GoodsDetailContent(
+internal fun GoodsDetailContent(
     data: com.pricekeeper.app.domain.model.GoodsPriceDetail,
     modifier: Modifier = Modifier
 ) {
@@ -108,7 +117,8 @@ private fun GoodsDetailContent(
     LazyColumn(
         modifier = modifier
             .fillMaxSize()
-            .padding(16.dp)
+            .padding(16.dp),
+        verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(14.dp)
     ) {
         // Price summary card
         item {
@@ -117,19 +127,21 @@ private fun GoodsDetailContent(
                 highestPrice = data.highestPrice,
                 latestPrice = data.latestPrice
             )
-            Spacer(modifier = Modifier.height(16.dp))
         }
 
         // Price trend chart
         item {
-            Card(modifier = Modifier.fillMaxWidth()) {
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+            ) {
                 Column(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
-                    Text("价格趋势", style = MaterialTheme.typography.titleMedium)
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Text("价格趋势", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                    Spacer(modifier = Modifier.height(12.dp))
                     PriceTrendChart(points = data.trend)
                 }
             }
-            Spacer(modifier = Modifier.height(16.dp))
         }
 
         // Store comparison header
@@ -137,7 +149,7 @@ private fun GoodsDetailContent(
             Text(
                 text = "比价列表",
                 style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.padding(bottom = 8.dp)
+                fontWeight = FontWeight.Bold
             )
         }
 
@@ -159,7 +171,6 @@ private fun GoodsDetailContent(
                     dateFormat = dateFormat,
                     currencyFormat = currencyFormat
                 )
-                HorizontalDivider()
             }
         }
     }
@@ -172,35 +183,73 @@ private fun StorePriceItem(
     currencyFormat: NumberFormat
 ) {
     val context = androidx.compose.ui.platform.LocalContext.current
-    Card(
+    ElevatedCard(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 4.dp),
-        colors = CardDefaults.cardColors(
+            .padding(vertical = 2.dp),
+        colors = CardDefaults.elevatedCardColors(
             containerColor = MaterialTheme.colorScheme.surface
-        )
+        ),
+        elevation = CardDefaults.elevatedCardElevation(defaultElevation = 1.dp)
     ) {
-        Row(
-            modifier = Modifier.padding(12.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(text = storePrice.storeName, style = MaterialTheme.typography.titleSmall)
+        Column(modifier = Modifier.padding(16.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    Icons.Default.Storefront,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary
+                )
+                Column(modifier = Modifier.weight(1f).padding(horizontal = 12.dp)) {
+                    Text(
+                        text = storePrice.storeName,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    Text(
+                        dateFormat.format(Date(storePrice.recordDate)),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
                 Text(
-                    text = "${currencyFormat.format(storePrice.price)} · ${dateFormat.format(Date(storePrice.recordDate))}",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                    currencyFormat.format(storePrice.price),
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary
                 )
             }
-            IconButton(onClick = {
-                val uri = android.net.Uri.parse("geo:0,0?q=${android.net.Uri.encode(storePrice.storeName)}")
-                val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, uri)
-                intent.setPackage("com.google.android.apps.maps")
-                try { context.startActivity(intent) } catch (_: Exception) {
-                    try { context.startActivity(android.content.Intent(android.content.Intent.ACTION_VIEW, uri)) } catch (_: Exception) {}
-                }
-            }) {
-                Text("🗺️", style = MaterialTheme.typography.titleMedium)
+            if (!storePrice.storeAddress.isNullOrBlank()) {
+                Spacer(Modifier.height(8.dp))
+                Text(
+                    storePrice.storeAddress,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+            Spacer(Modifier.height(12.dp))
+            Button(
+                onClick = {
+                    openMapRoutePlan(
+                        context,
+                        MapDestination(
+                            name = storePrice.storeName,
+                            address = storePrice.storeAddress,
+                            latitude = storePrice.storeLatitude,
+                            longitude = storePrice.storeLongitude,
+                            mapUrl = storePrice.storeMapUrl
+                        )
+                    )
+                },
+                shape = RoundedCornerShape(14.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Icon(Icons.Default.Navigation, contentDescription = null)
+                Spacer(Modifier.width(8.dp))
+                Text("路线")
             }
         }
     }

@@ -1,4 +1,4 @@
-package com.pricekeeper.app.feature.manual
+package com.pricekeeper.app.core.location
 
 import android.content.Context
 import android.location.Geocoder

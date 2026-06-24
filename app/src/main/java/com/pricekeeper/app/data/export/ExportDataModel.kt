@@ -8,8 +8,7 @@ data class ExportBundle(
     val exportedAt: Long,
     val goods: List<ExportGoods>,
     val stores: List<ExportStore>,
-    val priceRecords: List<ExportPriceRecord>,
-    val receipts: List<ExportReceipt>
+    val priceRecords: List<ExportPriceRecord>
 ) {
     companion object {
         const val CURRENT_VERSION = "1.0"
@@ -47,19 +46,7 @@ data class ExportPriceRecord(
     val storeId: Long,
     val price: Double,
     val recordDate: Long,
-    val receiptId: Long?,
     val isPromotion: Boolean,
     val note: String?,
-    val createdAt: Long
-)
-
-@Serializable
-data class ExportReceipt(
-    val id: Long,
-    val storeId: Long?,
-    val totalPrice: Double?,
-    val buyDate: Long,
-    val imagePath: String,
-    val ocrRawText: String?,
     val createdAt: Long
 )
