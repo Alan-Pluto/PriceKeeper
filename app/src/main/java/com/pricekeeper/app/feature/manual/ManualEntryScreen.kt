@@ -286,13 +286,13 @@ private fun NewStoreLocationCard(
         ) {
             Icon(Icons.Default.Store, contentDescription = null, modifier = Modifier.size(18.dp))
             Spacer(Modifier.width(8.dp))
-            Text("打开地图复制分享链接")
+            Text("打开高德地图并复制分享链接")
         }
         Spacer(modifier = Modifier.height(10.dp))
         OutlinedTextField(
             value = uiState.storeLocationInput,
             onValueChange = onLocationInputChange,
-            label = { Text("地图位置分享链接") },
+            label = { Text("高德地图位置分享链接") },
             placeholder = { Text("粘贴高德地图分享链接") },
             leadingIcon = { Icon(Icons.Default.Link, contentDescription = null) },
             singleLine = true,
