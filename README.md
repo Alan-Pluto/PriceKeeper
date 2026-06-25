@@ -30,24 +30,23 @@
 
 截图文件放在 [`screenshots/`](screenshots/) 目录下。你后续只需要按下面的文件名补充图片，README 会自动展示。
 
-| 首页 | 记一笔 |
-|---|---|
+| 首页                        | 记一笔                                |
+| --------------------------- | ------------------------------------- |
 | ![首页](screenshots/home.png) | ![记一笔](screenshots/manual-entry.png) |
 
-| 商品详情 | 商店详情 |
-|---|---|
+| 商品详情                                | 商店详情                                |
+| --------------------------------------- | --------------------------------------- |
 | ![商品详情](screenshots/goods-detail.png) | ![商店详情](screenshots/store-detail.png) |
 
-| 分类管理 | 我的 |
-|---|---|
+| 分类管理                                       | 我的                           |
+| ---------------------------------------------- | ------------------------------ |
 | ![分类管理](screenshots/category-management.png) | ![我的](screenshots/profile.png) |
-
 
 ## 下载
 
 APK 下载地址：
 
-- 待发布
+- [https://github.com/Alan-Pluto/PriceKeeper/releases/tag/v1.0.0](https://github.com/Alan-Pluto/PriceKeeper/releases/tag/v1.0.0)
 
 ## 编译
 

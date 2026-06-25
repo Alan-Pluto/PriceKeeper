@@ -26,7 +26,3 @@ docs/*技术设计*.md
 docs/*技术架构*.md
 docs/*架构*.md
 docs/*运行日志*.md
-
-# Published documentation structure.
-screenshots/*
-!screenshots/README.md
